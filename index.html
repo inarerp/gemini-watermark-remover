@@ -5,315 +5,421 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تغطية علامة جيمناي</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            max-width: 900px; 
-            margin: 20px auto; 
-            padding: 20px; 
-            background: #1a1a2e; 
-            color: white; 
-        }
-        .box { 
-            background: #16213e; 
-            padding: 20px; 
-            border-radius: 10px; 
-            margin-bottom: 20px; 
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
         }
         h1 { text-align: center; color: #4fc3f7; }
-        h3 { color: #4fc3f7; margin-bottom: 15px; }
-        
-        /* Canvas هو اللي هيتعرض - مش video */
-        #displayCanvas { 
-            max-width: 100%; 
-            border-radius: 8px; 
-            background: #000;
-            display: block;
-            margin: 0 auto;
+        .box {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
         }
-        
-        button { 
-            padding: 12px 24px; 
-            background: #4fc3f7; 
-            color: #000; 
-            border: none; 
-            border-radius: 5px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            margin: 5px; 
-        }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        button:hover:not(:disabled) { background: #29b6f6; }
-        
-        input[type="file"] { 
-            margin: 10px 0; 
+        .box h3 { margin-top: 0; color: #4fc3f7; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input[type="file"] {
+            width: 100%;
             padding: 10px;
             background: #0f3460;
             color: white;
             border: 1px solid #4fc3f7;
             border-radius: 5px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #4fc3f7;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button.danger { background: #ef5350; color: white; }
+        
+        /* منطقة المعاينة - هنا السحر */
+        #previewArea {
+            position: relative;
+            display: inline-block;
+            background: #000;
+            max-width: 100%;
+        }
+        #previewVideo {
+            display: block;
+            max-width: 100%;
+            max-height: 60vh;
+        }
+        #logoOverlay {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            border: 2px dashed #4fc3f7;
+            display: none;
+        }
+        #logoOverlay img {
             width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        }
+        #logoOverlay .handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #4fc3f7;
+            border: 2px solid white;
+            border-radius: 50%;
+            bottom: -6px;
+            right: -6px;
+            cursor: se-resize;
         }
         
-        #log { 
-            background: #0f0f1e; 
-            padding: 15px; 
-            border-radius: 5px; 
-            font-family: monospace; 
-            margin-top: 10px; 
-            text-align: right;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .controls {
+        #controls {
+            margin-top: 15px;
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 15px;
+            align-items: center;
         }
+        #controls label { margin: 0; font-size: 14px; }
+        #controls input[type="range"] { width: 150px; }
         
+        #log {
+            background: #0f0f1e;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 13px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
         #progress {
-            margin-top: 15px;
+            margin-top: 10px;
             font-weight: bold;
             color: #4fc3f7;
-            text-align: center;
-            font-size: 18px;
+            min-height: 24px;
         }
-        
-        .hint {
-            font-size: 12px;
-            color: #aaa;
-            text-align: center;
-            margin-top: 10px;
-        }
+        .hint { font-size: 12px; color: #aaa; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <h1>🎬 تغطية علامة جيمناي</h1>
+    <h1>🎬 تغطية علامة جيمناي باللوجو</h1>
     
     <div class="box">
         <h3>1️⃣ ارفع الفيديو</h3>
         <input type="file" id="videoInput" accept="video/*">
+        <div class="hint">الفيديو هيظهر تحت، واللوجو فوقه</div>
     </div>
 
     <div class="box">
-        <h3>2️⃣ ارفع اللوجو (اختياري)</h3>
+        <h3>2️⃣ ارفع اللوجو (PNG شفاف أفضل)</h3>
         <input type="file" id="logoInput" accept="image/*">
-        <p class="hint">لو مش هترفع لوجو، هيتحط مربع أسود فوق العلامة</p>
+        <div class="hint">بعد الرفع، اسحب اللوجو وحطه فوق علامة جيمناي</div>
     </div>
 
     <div class="box">
-        <h3>3️⃣ المعاينة (هتشوف التغطية هنا)</h3>
-        <!-- Canvas هو اللي هيتعرض - مش video -->
-        <canvas id="displayCanvas" width="720" height="1280"></canvas>
-        
-        <div class="controls">
-            <button id="playBtn" onclick="togglePlay()" disabled>▶️ تشغيل/إيقاف</button>
-            <button id="toggleCoverBtn" onclick="toggleCover()">👁️ إظهار/إخفاء التغطية</button>
+        <h3>3️⃣ المعاينة (اسحب اللوجو وحركه)</h3>
+        <div id="previewArea">
+            <video id="previewVideo" controls></video>
+            <div id="logoOverlay">
+                <img id="logoImg">
+                <div class="handle"></div>
+            </div>
         </div>
-        <p class="hint">التغطية هتظهر في أسفل يمين الفيديو (مكان علامة جيمناي)</p>
+        
+        <div id="controls">
+            <label>الحجم: <span id="sizeVal">80</span>px</label>
+            <input type="range" id="sizeSlider" min="30" max="200" value="80">
+            <label>الشفافية: <span id="opVal">100</span>%</label>
+            <input type="range" id="opSlider" min="20" max="100" value="100">
+            <button onclick="presetGemini()">📍 مكان جيمناي تلقائي</button>
+        </div>
     </div>
 
     <div class="box">
         <h3>4️⃣ التصدير</h3>
-        <button id="exportBtn" onclick="exportVideo()" disabled> بدء التصدير</button>
+        <button id="exportBtn" onclick="exportVideo()" disabled>🚀 ابدأ التصدير</button>
         <div id="progress"></div>
+        <div class="hint">️ التصدير هيكون بنفس سرعة الفيديو (مثلاً فيديو 10 ثواني = 10 ثواني تصدير). متقفلش الصفحة.</div>
     </div>
 
     <div id="log">جاهز...</div>
 
-    <!-- الفيديو مخفي - بنستخدمه بس عشان نقرأه -->
-    <video id="hiddenVideo" style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
 
     <script>
         const videoInput = document.getElementById('videoInput');
         const logoInput = document.getElementById('logoInput');
-        const displayCanvas = document.getElementById('displayCanvas');
-        const ctx = displayCanvas.getContext('2d');
-        const hiddenVideo = document.getElementById('hiddenVideo');
-        const playBtn = document.getElementById('playBtn');
+        const previewVideo = document.getElementById('previewVideo');
+        const logoOverlay = document.getElementById('logoOverlay');
+        const logoImg = document.getElementById('logoImg');
+        const previewArea = document.getElementById('previewArea');
         const exportBtn = document.getElementById('exportBtn');
         const progressDiv = document.getElementById('progress');
         const logDiv = document.getElementById('log');
-        
+        const sizeSlider = document.getElementById('sizeSlider');
+        const opSlider = document.getElementById('opSlider');
+        const sizeVal = document.getElementById('sizeVal');
+        const opVal = document.getElementById('opVal');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
         let videoFile = null;
-        let logoImg = null;
-        let showCover = true;
-        let isPlaying = false;
-        let animationId = null;
+        let logoFile = null;
+        let logoLoaded = false;
 
-        // 1. تحميل الفيديو
-        videoInput.addEventListener('change', (e) => {
-            videoFile = e.target.files[0];
-            if (videoFile) {
-                const url = URL.createObjectURL(videoFile);
-                hiddenVideo.src = url;
-                hiddenVideo.onloadedmetadata = () => {
-                    // ضبط حجم Canvas حسب الفيديو
-                    displayCanvas.width = hiddenVideo.videoWidth;
-                    displayCanvas.height = hiddenVideo.videoHeight;
-                    playBtn.disabled = false;
-                    exportBtn.disabled = false;
-                    log('✅ تم تحميل الفيديو: ' + hiddenVideo.videoWidth + '×' + hiddenVideo.videoHeight);
-                    // رسم أول فريم
-                    drawFrame();
-                };
-            }
-        });
-
-        // 2. تحميل اللوجو
-        logoInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const url = URL.createObjectURL(file);
-                logoImg = new Image();
-                logoImg.src = url;
-                logoImg.onload = () => {
-                    log('✅ تم تحميل اللوجو: ' + logoImg.width + '×' + logoImg.height);
-                    if (!isPlaying) drawFrame();
-                };
-            }
-        });
-
-        // 3. تشغيل/إيقاف
-        function togglePlay() {
-            if (isPlaying) {
-                hiddenVideo.pause();
-                isPlaying = false;
-                cancelAnimationFrame(animationId);
-            } else {
-                hiddenVideo.play();
-                isPlaying = true;
-                drawLoop();
-            }
-        }
-
-        // 4. إظهار/إخفاء التغطية
-        function toggleCover() {
-            showCover = !showCover;
-            log(showCover ? '✅ التغطية ظاهرة' : '👁️ التغطية مخفية');
-            if (!isPlaying) drawFrame();
-        }
-
-        // 5. رسم فريم واحد
-        function drawFrame() {
-            // مسح Canvas
-            ctx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
-            
-            // رسم الفيديو
-            ctx.drawImage(hiddenVideo, 0, 0, displayCanvas.width, displayCanvas.height);
-
-            // رسم التغطية
-            if (showCover) {
-                // مكان العلامة (أسفل يمين الفيديو)
-                const coverWidth = displayCanvas.width * 0.12; // 12% من العرض
-                const coverHeight = displayCanvas.height * 0.06; // 6% من الارتفاع
-                const x = displayCanvas.width - coverWidth - 30; // هامش 30 بكسل
-                const y = displayCanvas.height - coverHeight - 30;
-
-                if (logoImg) {
-                    // رسم اللوجو
-                    ctx.drawImage(logoImg, x, y, coverWidth, coverHeight);
-                } else {
-                    // رسم مربع أسود شفاف
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(x, y, coverWidth, coverHeight);
-                    
-                    // كتابة نص
-                    ctx.fillStyle = 'white';
-                    ctx.font = 'bold 24px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('COVERED', x + coverWidth/2, y + coverHeight/2 + 8);
-                }
-            }
-        }
-
-        // 6. حلقة الرسم (أثناء التشغيل)
-        function drawLoop() {
-            if (!isPlaying) return;
-            
-            drawFrame();
-            
-            if (hiddenVideo.ended) {
-                isPlaying = false;
-                log('⏹️ انتهى الفيديو');
-                return;
-            }
-            
-            animationId = requestAnimationFrame(drawLoop);
-        }
-
-        // 7. التصدير
-        async function exportVideo() {
-            if (!videoFile) return;
-            
-            exportBtn.disabled = true;
-            progressDiv.textContent = ' جاري المعالجة... (لا تغلق الصفحة)';
-            log('🎬 بدء التسجيل...');
-
-            // إعداد التسجيل من Canvas
-            const stream = displayCanvas.captureStream(30); // 30 FPS
-            
-            // محاولة إضافة الصوت
-            try {
-                const audioStream = hiddenVideo.captureStream();
-                audioStream.getAudioTracks().forEach(track => stream.addTrack(track));
-                log('✅ تم إضافة الصوت');
-            } catch(e) { 
-                log('⚠️ تحذير: الصوت قد لا يعمل'); 
-            }
-
-            const mediaRecorder = new MediaRecorder(stream, { 
-                mimeType: 'video/webm;codecs=vp9',
-                videoBitsPerSecond: 5000000 // 5 Mbps للجودة
-            });
-            const chunks = [];
-            
-            mediaRecorder.ondataavailable = (e) => { 
-                if (e.data.size > 0) chunks.push(e.data); 
-            };
-            
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'video_covered.webm';
-                a.click();
-                log('✅ تم التصدير بنجاح! تم تنزيل الفيديو');
-                progressDiv.textContent = '';
-                exportBtn.disabled = false;
-            };
-
-            // بدء التشغيل من البداية
-            hiddenVideo.currentTime = 0;
-            await new Promise(r => hiddenVideo.onseeked = r);
-            
-            mediaRecorder.start();
-            hiddenVideo.play();
-            isPlaying = true;
-            
-            // بدء حلقة الرسم
-            drawLoop();
-            
-            // مراقبة انتهاء الفيديو
-            hiddenVideo.onended = () => {
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                    isPlaying = false;
-                }, 500);
-            };
-            
-            log('🔄 جاري التسجيل...');
-        }
+        // حالة اللوجو (بالنسبة المئوية من حجم الفيديو)
+        let logoState = { x: 85, y: 85, size: 10 }; // % من العرض
 
         function log(msg) {
             const time = new Date().toLocaleTimeString();
             logDiv.innerHTML += `[${time}] ${msg}<br>`;
             logDiv.scrollTop = logDiv.scrollHeight;
         }
+
+        // ===== رفع الفيديو =====
+        videoInput.addEventListener('change', (e) => {
+            videoFile = e.target.files[0];
+            if (videoFile) {
+                const url = URL.createObjectURL(videoFile);
+                previewVideo.src = url;
+                previewVideo.onloadedmetadata = () => {
+                    log(`✅ فيديو: ${previewVideo.videoWidth}×${previewVideo.videoHeight}`);
+                    updateOverlayPosition();
+                };
+                checkReady();
+            }
+        });
+
+        // ===== رفع اللوجو =====
+        logoInput.addEventListener('change', (e) => {
+            logoFile = e.target.files[0];
+            if (logoFile) {
+                const url = URL.createObjectURL(logoFile);
+                logoImg.src = url;
+                logoImg.onload = () => {
+                    logoLoaded = true;
+                    logoOverlay.style.display = 'block';
+                    log('✅ تم رفع اللوجو - اسحبه للمكان المناسب');
+                    updateOverlayPosition();
+                    checkReady();
+                };
+            }
+        });
+
+        function checkReady() {
+            exportBtn.disabled = !(videoFile && logoLoaded);
+        }
+
+        // ===== تحديث موضع وحجم اللوجو في المعاينة =====
+        function updateOverlayPosition() {
+            if (!previewVideo.videoWidth) return;
+            
+            const displayW = previewVideo.offsetWidth;
+            const displayH = previewVideo.offsetHeight;
+            const sizePx = (logoState.size / 100) * displayW;
+            
+            logoOverlay.style.width = sizePx + 'px';
+            logoOverlay.style.height = sizePx + 'px';
+            logoOverlay.style.left = (logoState.x / 100) * displayW + 'px';
+            logoOverlay.style.top = (logoState.y / 100) * displayH + 'px';
+            logoOverlay.style.opacity = opSlider.value / 100;
+        }
+
+        // ===== السحب والتحريك =====
+        let dragging = false;
+        let resizing = false;
+        let startX, startY, startLogoX, startLogoY, startSize;
+
+        logoOverlay.addEventListener('mousedown', startDrag);
+        logoOverlay.addEventListener('touchstart', startDrag, {passive: false});
+        
+        document.querySelector('.handle').addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            startResize(e);
+        });
+        document.querySelector('.handle').addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            startResize(e);
+        }, {passive: false});
+
+        function startDrag(e) {
+            if (e.target.classList.contains('handle')) return;
+            e.preventDefault();
+            dragging = true;
+            const pos = getPos(e);
+            startX = pos.x;
+            startY = pos.y;
+            startLogoX = logoState.x;
+            startLogoY = logoState.y;
+        }
+
+        function startResize(e) {
+            e.preventDefault();
+            resizing = true;
+            const pos = getPos(e);
+            startX = pos.x;
+            startSize = logoState.size;
+        }
+
+        function getPos(e) {
+            return e.touches ? {x: e.touches[0].clientX, y: e.touches[0].clientY} 
+                             : {x: e.clientX, y: e.clientY};
+        }
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('touchmove', onMove, {passive: false});
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+
+        function onMove(e) {
+            if (!dragging && !resizing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            const rect = previewArea.getBoundingClientRect();
+            const dx = pos.x - startX;
+            const dy = pos.y - startY;
+
+            if (dragging) {
+                logoState.x = Math.max(0, Math.min(100 - logoState.size, startLogoX + (dx / rect.width) * 100));
+                logoState.y = Math.max(0, Math.min(100 - logoState.size, startLogoY + (dy / rect.height) * 100));
+                updateOverlayPosition();
+            } else if (resizing) {
+                logoState.size = Math.max(3, Math.min(50, startSize + (dx / rect.width) * 100));
+                sizeSlider.value = Math.round((logoState.size / 100) * previewVideo.offsetWidth);
+                sizeVal.textContent = sizeSlider.value;
+                updateOverlayPosition();
+            }
+        }
+
+        function endDrag() {
+            dragging = false;
+            resizing = false;
+        }
+
+        // ===== أزرار التحكم =====
+        sizeSlider.addEventListener('input', () => {
+            const displayW = previewVideo.offsetWidth;
+            logoState.size = (parseInt(sizeSlider.value) / displayW) * 100;
+            sizeVal.textContent = sizeSlider.value;
+            updateOverlayPosition();
+        });
+
+        opSlider.addEventListener('input', () => {
+            opVal.textContent = opSlider.value;
+            updateOverlayPosition();
+        });
+
+        function presetGemini() {
+            // مكان علامة جيمناي: أسفل يمين، حجم ~8% من العرض
+            logoState.size = 8;
+            logoState.x = 88;
+            logoState.y = 88;
+            sizeSlider.value = Math.round((8 / 100) * previewVideo.offsetWidth);
+            sizeVal.textContent = sizeSlider.value;
+            updateOverlayPosition();
+            log('📍 تم ضبط المكان على علامة جيمناي');
+        }
+
+        // ===== التصدير =====
+        async function exportVideo() {
+            if (!videoFile || !logoLoaded) return;
+            
+            exportBtn.disabled = true;
+            progressDiv.textContent = ' جاري التصدير...';
+            log('🎬 بدء التصدير...');
+
+            // إعداد Canvas بالحجم الأصلي للفيديو
+            canvas.width = previewVideo.videoWidth;
+            canvas.height = previewVideo.videoHeight;
+
+            // تحميل صورة اللوجو الأصلية
+            const logoImage = new Image();
+            logoImage.src = logoImg.src;
+            await new Promise(r => logoImage.onload = r);
+
+            // إعداد التسجيل
+            const stream = canvas.captureStream(30);
+            try {
+                // محاولة إضافة الصوت
+                const videoStream = previewVideo.captureStream ? previewVideo.captureStream() : null;
+                if (videoStream) {
+                    videoStream.getAudioTracks().forEach(t => stream.addTrack(t));
+                }
+            } catch(e) {
+                log('⚠️ تحذير: الصوت قد لا يُحفظ في بعض المتصفحات');
+            }
+
+            let mimeType = 'video/webm;codecs=vp9,opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8,opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+
+            const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 5000000 });
+            const chunks = [];
+            recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+            
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'video_with_logo.webm';
+                a.click();
+                log('✅ تم التصدير! الفيديو هينزل تلقائياً');
+                progressDiv.textContent = '';
+                exportBtn.disabled = false;
+            };
+
+            // بدء التشغيل
+            previewVideo.currentTime = 0;
+            await new Promise(r => previewVideo.onseeked = r);
+            
+            recorder.start();
+            previewVideo.play();
+
+            const opacity = opSlider.value / 100;
+            const totalDuration = previewVideo.duration;
+
+            function drawFrame() {
+                if (previewVideo.ended || previewVideo.paused) {
+                    recorder.stop();
+                    return;
+                }
+
+                // رسم الفيديو
+                ctx.globalAlpha = 1;
+                ctx.drawImage(previewVideo, 0, 0, canvas.width, canvas.height);
+
+                // رسم اللوجو
+                const logoW = (logoState.size / 100) * canvas.width;
+                const logoH = logoW; // مربع
+                const logoX = (logoState.x / 100) * canvas.width;
+                const logoY = (logoState.y / 100) * canvas.height;
+
+                ctx.globalAlpha = opacity;
+                ctx.drawImage(logoImage, logoX, logoY, logoW, logoH);
+                ctx.globalAlpha = 1;
+
+                // تحديث شريط التقدم
+                const pct = Math.round((previewVideo.currentTime / totalDuration) * 100);
+                progressDiv.textContent = `⏳ جاري التصدير... ${pct}%`;
+
+                requestAnimationFrame(drawFrame);
+            }
+
+            drawFrame();
+        }
+
+        window.addEventListener('resize', updateOverlayPosition);
     </script>
 </body>
 </html>
