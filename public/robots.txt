@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-# AI crawler guidance
-Sitemap: https://removewatermark.dev/sitemap.xml
-
-# llms.txt location
-# https://removewatermark.dev/llms.txt
